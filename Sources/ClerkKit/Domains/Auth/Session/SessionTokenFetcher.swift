@@ -5,6 +5,7 @@ actor SessionTokenFetcher {
 
   struct InFlightTokenTask {
     let id: UUID
+    let runtime: ClerkRuntimeScope
     let tokenGeneration: ClerkIdentityController.SessionTokenGeneration
     let clientId: String?
     let clientResponseGeneration: ClientResponseGeneration
@@ -47,7 +48,8 @@ actor SessionTokenFetcher {
     }
 
     if let inProgressTask = tokenTasks[cacheKey] {
-      if inProgressTask.tokenGeneration == tokenGeneration,
+      if inProgressTask.runtime.isSameRuntime(as: runtime),
+         inProgressTask.tokenGeneration == tokenGeneration,
          inProgressTask.clientId == context.clientId,
          inProgressTask.clientResponseGeneration == context.clientResponseGeneration,
          inProgressTask.isCurrentActiveSession == context.isCurrentActiveSession
@@ -74,6 +76,7 @@ actor SessionTokenFetcher {
 
     tokenTasks[cacheKey] = InFlightTokenTask(
       id: requestId,
+      runtime: runtime,
       tokenGeneration: context.tokenGeneration,
       clientId: context.clientId,
       clientResponseGeneration: context.clientResponseGeneration,
@@ -107,6 +110,7 @@ actor SessionTokenFetcher {
     }
     forcedTokenTasks[requestId] = InFlightTokenTask(
       id: requestId,
+      runtime: runtime,
       tokenGeneration: context.tokenGeneration,
       clientId: context.clientId,
       clientResponseGeneration: context.clientResponseGeneration,

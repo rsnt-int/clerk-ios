@@ -29,6 +29,10 @@ struct ClerkRuntimeScope {
     .init(state: clerkProvider().runtime.state, clerkProvider: clerkProvider)
   }
 
+  func isSameRuntime(as other: ClerkRuntimeScope) -> Bool {
+    state === other.state
+  }
+
   func validateStableRuntime() throws {
     try state.validate()
   }

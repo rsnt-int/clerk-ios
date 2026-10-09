@@ -50,7 +50,9 @@ final class ClerkRuntime {
     guard let clerk else { return }
 
     clerk.identityController.prepareForConfiguration()
-    clerk.reconcileBiometricCredentialsForCurrentInstallation()
+    if !(dependencies is MockDependencyContainer) {
+      clerk.reconcileBiometricCredentialsForCurrentInstallation()
+    }
 
     let sessionPollingManager = SessionPollingManager(
       sessionProvider: clerk,

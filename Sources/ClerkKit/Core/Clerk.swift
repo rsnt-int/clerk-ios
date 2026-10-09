@@ -239,6 +239,17 @@ public final class Clerk {
     dependencies.configurationManager.proxyConfiguration
   }
 
+  static func configurePreview(dependencies: MockDependencyContainer, state: ClerkRuntimeState) -> Clerk {
+    if let existing = _shared {
+      existing.runtime.state.retire()
+      existing.cleanupManagers()
+    }
+    let clerk = Clerk()
+    _shared = clerk
+    clerk.install(ClerkRuntime(clerk: clerk, state: state, dependencies: dependencies))
+    return clerk
+  }
+
   package init() {}
 
   private static func makeUnconfiguredRuntime(clerk: Clerk) -> ClerkRuntime {

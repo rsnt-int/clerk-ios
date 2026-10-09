@@ -107,11 +107,11 @@ extension Clerk {
       return Clerk.shared
     }
 
-    let clerk = Clerk.configure(publishableKey: "pk_test_bW9jay5jbGVyay5hY2NvdW50cy5kZXYk")
+    let state = ClerkRuntimeState()
 
     // Requests go through the preview transport; this client only satisfies the container.
     let mockBaseURL = URL(string: "https://mock.clerk.accounts.dev")!
-    let mockAPIClient = APIClient(baseURL: mockBaseURL, runtimeScope: clerk.runtimeScope)
+    let mockAPIClient = APIClient(baseURL: mockBaseURL, runtimeScope: .init(state: state))
 
     let previewBuilder = PreviewBuilder()
     preview?(previewBuilder)
@@ -123,10 +123,19 @@ extension Clerk {
     previewBuilder.transport.fallback(ClientAPI.get(), returning: ClientResponse(response: mockClient, client: nil))
     previewBuilder.transport.fallback(EnvironmentAPI.get(), returning: mockEnvironment)
 
-    clerk.dependencies = MockDependencyContainer(
+    let dependencies = MockDependencyContainer(
       apiClient: mockAPIClient,
       transport: previewBuilder.transport
     )
+    do {
+      try dependencies.configurationManager.configure(
+        publishableKey: "pk_test_bW9jay5jbGVyay5hY2NvdW50cy5kZXYk",
+        options: .init(telemetryEnabled: false, watchConnectivityEnabled: false)
+      )
+    } catch {
+      preconditionFailure("Invalid preview configuration: \(error)")
+    }
+    let clerk = Clerk.configurePreview(dependencies: dependencies, state: state)
     clerk.setClientFromIdentityController(mockClient)
     clerk.environment = mockEnvironment
 
